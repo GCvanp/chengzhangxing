@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业成长性分析计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        select, input {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .result {
+            font-weight: bold;
+        }
+        .company-name {
+            font-weight: bold;
+            text-align: left;
+        }
+        .highlight {
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <h2>企业成长性分析计算器</h2>
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">公司名称</th>
+                <th rowspan="2">项目</th>
+                <th colspan="3">实际数据</th>
+                <th rowspan="2">成长性</th>
+                <th rowspan="2">现有得分</th>
+                <th colspan="2">预期调整</th>
+            </tr>
+            <tr>
+                <th>2023年</th>
+                <th>2024年</th>
+                <th>2025年</th>
+                <th>预期得分</th>
+                <th>预期2025年</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td rowspan="2" class="company-name"><input type="text" id="company" value="立诺环保" oninput="calculateAll()"></td>
+                <td>销售收入</td>
+                <td><input type="number" id="c2-1" value="1552.8" oninput="calculateAll()"></td>
+                <td><input type="number" id="d2-1" value="1484.6" oninput="calculateAll()"></td>
+                <td><input type="number" id="x2-1" value="1712.0" oninput="calculateAll()"></td>
+                <td class="result" id="growth-1"></td>
+                <td class="result" id="current-score-1"></td>
+                <td>
+                    <select id="expected-score-1" onchange="calculateExpected('1')">
+                        <option value="1-2分">1-2分</option>
+                        <option value="3-4分">3-4分</option>
+                        <option value="5-6分">5-6分</option>
+                        <option value="7-8分">7-8分</option>
+                        <option value="9-10分">9-10分</option>
+                    </select>
+                </td>
+                <td class="result highlight" id="expected-value-1"></td>
+            </tr>
+            <tr>
+                <td>净资产</td>
+                <td><input type="number" id="c2-2" value="563.1" oninput="calculateAll()"></td>
+                <td><input type="number" id="d2-2" value="603.9" oninput="calculateAll()"></td>
+                <td><input type="number" id="x2-2" value="0.0" oninput="calculateAll()"></td>
+                <td class="result" id="growth-2"></td>
+                <td class="result" id="current-score-2"></td>
+                <td>
+                    <select id="expected-score-2" onchange="calculateExpected('2')">
+                        <option value="1-2分">1-2分</option>
+                        <option value="3-4分" selected>3-4分</option>
+                        <option value="5-6分">5-6分</option>
+                        <option value="7-8分">7-8分</option>
+                        <option value="9-10分">9-10分</option>
+                    </select>
+                </td>
+                <td class="result highlight" id="expected-value-2"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function calculateGrowth(c2, d2, x2) {
+            if (c2 === 0 && d2 === 0) return 0;
+            
+            // 计算年数
+            const years = c2 === 0 ? 1 : 2;
+            
+            // 计算复合增长率
+            if (years === 2) {
+                // 三年复合增长率
+                return Math.pow(x2 / c2, 1/years) - 1;
+            } else {
+                // 两年增长率
+                return (x2 - d2) / d2;
+            }
+        }
+        
+        function getScore(growthRate) {
+            growthRate = growthRate * 100; // 转换为百分比
+            if (growthRate < 0) return "0分";
+            if (growthRate < 5) return "1-2分";
+            if (growthRate < 15) return "3-4分";
+            if (growthRate < 25) return "5-6分";
+            if (growthRate < 35) return "7-8分";
+            return "9-10分";
+        }
+        
+        function getGrowthRate(score) {
+            switch(score) {
+                case "1-2分": return 0.01;
+                case "3-4分": return 0.05;
+                case "5-6分": return 0.15;
+                case "7-8分": return 0.25;
+                case "9-10分": return 0.35;
+                default: return 0;
+            }
+        }
+        
+        function calculateExpected(row) {
+            const c2 = parseFloat(document.getElementById(`c2-${row}`).value) || 0;
+            const d2 = parseFloat(document.getElementById(`d2-${row}`).value) || 0;
+            const score = document.getElementById(`expected-score-${row}`).value;
+            const growthRate = getGrowthRate(score);
+            
+            let expectedValue;
+            if (c2 !== 0) {
+                expectedValue = c2 * Math.pow(1 + growthRate, 2);
+            } else {
+                expectedValue = d2 * (1 + growthRate);
+            }
+            
+            document.getElementById(`expected-value-${row}`).textContent = expectedValue.toFixed(1) + "万元";
+        }
+        
+        function calculateAll() {
+            // 计算销售收入行
+            const c2_1 = parseFloat(document.getElementById('c2-1').value) || 0;
+            const d2_1 = parseFloat(document.getElementById('d2-1').value) || 0;
+            const x2_1 = parseFloat(document.getElementById('x2-1').value) || 0;
+            const growth1 = calculateGrowth(c2_1, d2_1, x2_1);
+            document.getElementById('growth-1').textContent = (growth1 * 100).toFixed(1) + "%";
+            document.getElementById('current-score-1').textContent = getScore(growth1);
+            calculateExpected('1');
+            
+            // 计算净资产行
+            const c2_2 = parseFloat(document.getElementById('c2-2').value) || 0;
+            const d2_2 = parseFloat(document.getElementById('d2-2').value) || 0;
+            const x2_2 = parseFloat(document.getElementById('x2-2').value) || 0;
+            const growth2 = calculateGrowth(c2_2, d2_2, x2_2);
+            document.getElementById('growth-2').textContent = (growth2 * 100).toFixed(1) + "%";
+            document.getElementById('current-score-2').textContent = getScore(growth2);
+            calculateExpected('2');
+        }
+        
+        // 页面加载时计算一次
+        window.onload = calculateAll;
+    </script>
+</body>
+</html>
